@@ -37,6 +37,7 @@ export default function Clienti() {
   const [dettaglio, setDettaglio] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [openStorico, setOpenStorico] = useState(false);
+  const [openPreventivoVeloce, setOpenPreventivoVeloce] = useState(false);
   const [nominativi, setNominativi] = useState([]);
   const [storicoSel, setStoricoSel] = useState("");
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -161,15 +162,23 @@ export default function Clienti() {
           <h1 className="font-display text-4xl font-semibold tracking-tight">Clienti</h1>
           <p className="text-muted-foreground mt-1">{clienti.length} clienti registrati</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setOpenPreventivoVeloce(true)} data-testid="cta-preventivo-veloce">
+            <FileText className="w-4 h-4 mr-2" /> Preventivo veloce
+          </Button>
+          <Button variant="outline" asChild data-testid="cta-listino-pdf">
+            <a href={`${API}/tariffe/listino.pdf`} target="_blank" rel="noreferrer">
+              <FileText className="w-4 h-4 mr-2" /> Listino prezzi PDF
+            </a>
+          </Button>
           <Button variant="outline" asChild data-testid="btn-export-csv">
             <a href={`${API}/export/clienti.csv?anno=${year}`} download>
               <FileDown className="w-4 h-4 mr-2" /> CSV
             </a>
           </Button>
-          <Button variant="outline" asChild data-testid="btn-export-xlsx">
+          <Button variant="outline" asChild data-testid="btn-export-xlsx" title="Excel per commercialista (anno selezionato)">
             <a href={`${API}/export/clienti.xlsx?anno=${year}`} download>
-              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel
+              <FileSpreadsheet className="w-4 h-4 mr-2" /> Excel commercialista {year}
             </a>
           </Button>
           <Button
@@ -359,6 +368,8 @@ export default function Clienti() {
           </TableBody>
         </Table>
       </Card>
+
+      <ClienteForm open={openPreventivoVeloce} onOpenChange={setOpenPreventivoVeloce} mode="preventivo" />
 
       <ClienteForm
         open={formOpen}

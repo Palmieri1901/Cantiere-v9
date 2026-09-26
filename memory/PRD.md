@@ -645,3 +645,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Euro spaziato + IVA scorporata
 - helpers._euro usa "€" + 2 nbsp (tutti i PDF). Preventivo esterno: ricambi da magazzino inseriti a prezzo netto (listino / (1+IVA)) nel frontend; intestazione colonna "PREZZO (netto)" e nota IVA nel PDF.
+
+## 2026-06 – Azioni rapide spostate in Rimessaggio
+- Rimosse da Home (QuickActionCard, dialog Excel). In Clienti.jsx header: Preventivo veloce (ClienteForm mode=preventivo), Listino prezzi PDF, CSV, "Excel commercialista {anno}" (usa anno di lavoro selezionato).
