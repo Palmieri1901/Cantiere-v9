@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, HardHat, Search, ChevronRight, FileText } from "lucide-react";
 import LavoriSection from "@/pages/LavoriSection";
+import PreventiviEsternoTab from "@/pages/esterni/PreventiviEsternoTab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PdfPreviewOverlay } from "@/components/PdfPreviewOverlay";
 import { openBlob } from "@/pages/ddt/common";
 
@@ -21,6 +23,7 @@ export default function LavorazioniEsterne() {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewName, setPreviewName] = useState("conto.pdf");
   const [contoAnno, setContoAnno] = useState("tutti");
+  const [lavoriKey, setLavoriKey] = useState(0);
 
   const anteprimaConto = async (e) => {
     try {
@@ -90,6 +93,7 @@ export default function LavorazioniEsterne() {
                 <div className="text-xs text-muted-foreground">{e.n} {e.n === 1 ? "lavoro" : "lavori"} · {e.ore} h{e.ultimo ? ` · ultimo ${e.ultimo}` : ""}{e.note ? ` · ${e.note}` : ""}</div>
               </div>
               <div className="font-mono-num text-sm font-semibold">{fmtEuro(e.totale)}</div>
+              <Button size="sm" variant="outline" onClick={(ev) => { ev.stopPropagation(); setOpen(e); }} data-testid={`btn-preventivo-${e.id}`}><FileText className="w-3.5 h-3.5 mr-1" /> Preventivo</Button>
               <Button size="sm" variant="outline" onClick={(ev) => { ev.stopPropagation(); anteprimaConto(e); }} data-testid={`btn-conto-${e.id}`}><FileText className="w-3.5 h-3.5 mr-1" /> Conto PDF</Button>
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={(ev) => { ev.stopPropagation(); setEdit({ ...e }); }} data-testid={`btn-edit-esterno-${e.id}`}><Pencil className="w-3.5 h-3.5" /></Button>
               <Button size="icon" variant="ghost" className="h-8 w-8" onClick={(ev) => { ev.stopPropagation(); del(e); }} data-testid={`btn-del-esterno-${e.id}`}><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
@@ -106,12 +110,17 @@ export default function LavorazioniEsterne() {
             <DialogDescription>Scheda lavori del cliente esterno.</DialogDescription>
           </DialogHeader>
           {open && (
-            <>
-              <div className="flex justify-end -mt-2 mb-2">
+            <Tabs defaultValue="lavori">
+              <div className="flex items-center justify-between flex-wrap gap-2 -mt-2 mb-2">
+                <TabsList>
+                  <TabsTrigger value="lavori" data-testid="tab-esterno-lavori">Lavori eseguiti</TabsTrigger>
+                  <TabsTrigger value="preventivi" data-testid="tab-esterno-preventivi">Preventivi</TabsTrigger>
+                </TabsList>
                 <Button size="sm" variant="outline" onClick={() => anteprimaConto(open)} data-testid="btn-conto-dialog"><FileText className="w-3.5 h-3.5 mr-1" /> Anteprima conto PDF</Button>
               </div>
-              <LavoriSection clienteId={open.id} />
-            </>
+              <TabsContent value="lavori"><LavoriSection key={lavoriKey} clienteId={open.id} /></TabsContent>
+              <TabsContent value="preventivi"><PreventiviEsternoTab esterno={open} anteprima={(url, name) => { setPreviewName(name); openBlob(api, "get", url, null, setPreviewUrl, setPreviewOpen).catch((e) => toast.error(e.response?.data?.detail || "Errore PDF")); }} onLavoroCreato={() => setLavoriKey((k) => k + 1)} /></TabsContent>
+            </Tabs>
           )}
         </DialogContent>
       </Dialog>

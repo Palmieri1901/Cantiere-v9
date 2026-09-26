@@ -696,3 +696,66 @@ def _build_documento_servizio(cantiere_doc, sottotitolo, blocchi, note, testo, f
         elems += [Spacer(1, 6*mm), Paragraph(escape(note), small)]
     pdf.build(elems)
     return buf.getvalue(), pdf.page
+
+
+def build_preventivo_esterno_pdf(p: dict, est: dict, cantiere_doc: dict) -> bytes:
+    """Preventivo per cliente esterno: righe manodopera/articoli/voci, sconto, IVA, totale."""
+    from xml.sax.saxutils import escape
+    from datetime import datetime as _dt, timedelta as _td
+    buf = io.BytesIO()
+    pdf = SimpleDocTemplate(buf, pagesize=A4, leftMargin=14*mm, rightMargin=14*mm, topMargin=10*mm, bottomMargin=10*mm, title=f"Preventivo {p['numero']}/{p['anno']}")
+    styles = getSampleStyleSheet()
+    NAVY = colors.HexColor("#0F1B3D"); TEAK = colors.HexColor("#B0562E"); SAND = colors.HexColor("#F3EFE7"); MUTED = colors.HexColor("#5B6478")
+    body = ParagraphStyle("body", parent=styles["Normal"], fontName="Helvetica", fontSize=9, textColor=NAVY, leading=11.5)
+    small = ParagraphStyle("small", parent=body, fontSize=7.5, textColor=MUTED, leading=9)
+    h2 = ParagraphStyle("h2", parent=body, fontName="Helvetica-Bold", fontSize=9, textColor=TEAK, spaceBefore=6, spaceAfter=2)
+    nome_cantiere = (cantiere_doc.get("nome") or "PORTOMARE").upper()
+    parts = [x for x in [cantiere_doc.get("indirizzo"), " ".join(filter(None, [cantiere_doc.get("cap"), cantiere_doc.get("citta")])), cantiere_doc.get("telefono"), cantiere_doc.get("email"), cantiere_doc.get("piva") and f"P.IVA {cantiere_doc.get('piva')}"] if x]
+    logo_cell = Paragraph(f"<b>{escape(nome_cantiere)}</b>", ParagraphStyle("brand", fontName="Helvetica-Bold", fontSize=17, textColor=NAVY))
+    logo_b64 = cantiere_doc.get("logo_base64") or ""
+    if logo_b64 and "," in logo_b64:
+        try:
+            logo_cell = RLImage(io.BytesIO(_b64.b64decode(logo_b64.split(",", 1)[1])), width=30*mm, height=18*mm, kind="proportional")
+        except Exception:
+            pass
+    try:
+        scad = (_dt.strptime(p.get("data", ""), "%Y-%m-%d") + _td(days=int(p.get("validita_giorni") or 30))).strftime("%d/%m/%Y")
+    except Exception:
+        scad = ""
+    head = Table([[logo_cell, Paragraph(f"<para align=right><font color='#5B6478' size=8>PREVENTIVO</font><br/><font size=14 color='#B0562E'><b>N. {p['numero']}/{p['anno']}</b></font><br/><font color='#5B6478' size=8>del {escape(str(p.get('data', '')))}{(' · valido fino al ' + scad) if scad else ''}</font></para>", body)]], colWidths=[100*mm, 82*mm])
+    head.setStyle(TableStyle([("VALIGN", (0, 0), (-1, -1), "MIDDLE")]))
+    sep = Table([[""]], colWidths=[182*mm], rowHeights=[1.5]); sep.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, -1), TEAK)]))
+    elems = [head] + ([Paragraph(escape(" · ".join(parts)), small)] if parts else []) + [Spacer(1, 2*mm), sep, Spacer(1, 3*mm),
+             Paragraph("SPETT.LE", h2), Paragraph(f"<b>{escape(est.get('nome', ''))}</b>", ParagraphStyle("v", parent=body, fontSize=11))]
+    contatti = " · ".join(x for x in [est.get("telefono"), est.get("note")] if x)
+    if contatti:
+        elems.append(Paragraph(escape(contatti), small))
+    if p.get("oggetto"):
+        elems += [Paragraph("OGGETTO", h2), Paragraph(escape(p["oggetto"]), body)]
+    elems.append(Paragraph("DETTAGLIO", h2))
+    TIPO = {"manodopera": "Manodopera", "articolo": "Ricambio", "voce": "Voce"}
+    rows = [["TIPO", "DESCRIZIONE", "Q.TÀ", "PREZZO", "IMPORTO"]]
+    for r in p.get("righe", []):
+        q = float(r.get("quantita") or 0); pu = float(r.get("prezzo_unitario") or 0)
+        descr = escape(r.get("descrizione", "")) + (f" <font size=7 color='#5B6478'>[{escape(r['codice'])}]</font>" if r.get("codice") else "")
+        rows.append([TIPO.get(r.get("tipo"), "Voce"), Paragraph(descr, body), f"{q:g}" + (" h" if r.get("tipo") == "manodopera" else ""), _euro(pu), _euro(q * pu)])
+    tbl = Table(rows, colWidths=[24*mm, 86*mm, 18*mm, 26*mm, 28*mm], repeatRows=1)
+    tbl.setStyle(TableStyle([("BACKGROUND", (0, 0), (-1, 0), NAVY), ("TEXTCOLOR", (0, 0), (-1, 0), colors.white), ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                             ("FONTSIZE", (0, 0), (-1, -1), 8), ("ALIGN", (2, 0), (-1, -1), "RIGHT"), ("VALIGN", (0, 0), (-1, -1), "TOP"),
+                             ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, SAND]), ("GRID", (0, 0), (-1, -1), 0.25, colors.HexColor("#D9D4C7")),
+                             ("TOPPADDING", (0, 0), (-1, -1), 4), ("BOTTOMPADDING", (0, 0), (-1, -1), 4)]))
+    elems += [tbl, Spacer(1, 3*mm)]
+    tot_rows = [["Imponibile", _euro(p.get("imponibile", 0))]]
+    if float(p.get("sconto_pct") or 0) > 0:
+        tot_rows += [[f"Sconto {p['sconto_pct']:g}%", "- " + _euro(p.get("sconto", 0))], ["Netto", _euro(p.get("netto", 0))]]
+    tot_rows += [[f"IVA {float(p.get('iva_pct') or 0):g}%", _euro(p.get("iva", 0))], ["TOTALE", _euro(p.get("totale", 0))]]
+    tt = Table(tot_rows, colWidths=[40*mm, 34*mm], hAlign="RIGHT")
+    tt.setStyle(TableStyle([("FONTSIZE", (0, 0), (-1, -1), 9), ("ALIGN", (1, 0), (1, -1), "RIGHT"), ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+                            ("BACKGROUND", (0, -1), (-1, -1), SAND), ("LINEABOVE", (0, -1), (-1, -1), 1, TEAK), ("TOPPADDING", (0, 0), (-1, -1), 3), ("BOTTOMPADDING", (0, 0), (-1, -1), 3)]))
+    elems.append(tt)
+    if p.get("note"):
+        elems += [Paragraph("NOTE", h2), Paragraph(escape(p["note"]), body)]
+    elems += [Spacer(1, 8*mm), Paragraph("Per accettazione (data e firma): ____________________________________", body),
+              Spacer(1, 3*mm), Paragraph("Prezzi validi per il periodo indicato. I ricambi sono soggetti a disponibilità di magazzino.", small)]
+    pdf.build(elems)
+    return buf.getvalue()

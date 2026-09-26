@@ -29,7 +29,7 @@ SETTORI: Dict[str, List[str]] = {
     "Suzuki": ["suzuki_modelli", "suzuki_preventivi", "suzuki_legenda", "suzuki_settings"],
     "Gommoni GEB": ["gommoni_modelli", "gommoni_accessori", "gommoni_settings", "gommoni_preventivi"],
     "DDT": ["ddt", "ddt_indirizzi"],
-    "Dipendenti e app": ["dipendenti", "lavori_pending", "clienti_esterni"],
+    "Dipendenti e app": ["dipendenti", "lavori_pending", "clienti_esterni", "preventivi_esterni"],
     "Documenti di servizio": ["documenti_servizio"],
 }
 
