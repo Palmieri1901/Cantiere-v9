@@ -734,7 +734,7 @@ def build_preventivo_esterno_pdf(p: dict, est: dict, cantiere_doc: dict) -> byte
         elems += [Paragraph("OGGETTO", h2), Paragraph(escape(p["oggetto"]), body)]
     elems.append(Paragraph("DETTAGLIO", h2))
     TIPO = {"manodopera": "Manodopera", "articolo": "Ricambio", "voce": "Voce"}
-    rows = [["TIPO", "DESCRIZIONE", "Q.TÀ", "PREZZO", "IMPORTO"]]
+    rows = [["TIPO", "DESCRIZIONE", "Q.TÀ", "PREZZO (netto)", "IMPORTO"]]
     for r in p.get("righe", []):
         q = float(r.get("quantita") or 0); pu = float(r.get("prezzo_unitario") or 0)
         descr = escape(r.get("descrizione", "")) + (f" <font size=7 color='#5B6478'>[{escape(r['codice'])}]</font>" if r.get("codice") else "")
@@ -756,6 +756,6 @@ def build_preventivo_esterno_pdf(p: dict, est: dict, cantiere_doc: dict) -> byte
     if p.get("note"):
         elems += [Paragraph("NOTE", h2), Paragraph(escape(p["note"]), body)]
     elems += [Spacer(1, 8*mm), Paragraph("Per accettazione (data e firma): ____________________________________", body),
-              Spacer(1, 3*mm), Paragraph("Prezzi validi per il periodo indicato. I ricambi sono soggetti a disponibilità di magazzino.", small)]
+              Spacer(1, 3*mm), Paragraph("Prezzi unitari IVA esclusa; IVA calcolata sul totale. Preventivo valido per il periodo indicato. I ricambi sono soggetti a disponibilità di magazzino.", small)]
     pdf.build(elems)
     return buf.getvalue()

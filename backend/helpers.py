@@ -277,4 +277,4 @@ def calcola_costi(lunghezza: float, tipo_sosta: str, t: Tariffe,
 
 def _euro(v: float) -> str:
     s = f"{v:,.2f}"
-    return "€ " + s.replace(",", "X").replace(".", ",").replace("X", ".")
+    return "€\u00a0\u00a0" + s.replace(",", "X").replace(".", ",").replace("X", ".")

@@ -642,3 +642,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Ricambi non in magazzino nei preventivi esterni
 - Riga tipo articolo con articolo_id null: pulsante "Ricambio non in magazzino" + opzione nella ricerca "Aggiungi ... come ricambio non in magazzino". In conversione a lavoro contano nel costo (non scaricano magazzino).
+
+## 2026-06 – Euro spaziato + IVA scorporata
+- helpers._euro usa "€" + 2 nbsp (tutti i PDF). Preventivo esterno: ricambi da magazzino inseriti a prezzo netto (listino / (1+IVA)) nel frontend; intestazione colonna "PREZZO (netto)" e nota IVA nel PDF.
