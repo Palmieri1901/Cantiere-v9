@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { api, fmtEuro } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { ArticoloPicker } from "@/components/ArticoloPicker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -359,22 +360,7 @@ export default function LavoriSection({ clienteId }) {
                     </div>
                   )}
 
-                  <Select value="" onValueChange={addArticolo}>
-                    <SelectTrigger className="h-9 text-sm" data-testid="select-add-articolo">
-                      <SelectValue placeholder="+ Aggiungi articolo dal magazzino" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {articoliDisponibili.length === 0 && (
-                        <div className="px-2 py-1.5 text-xs text-muted-foreground">Nessun articolo disponibile</div>
-                      )}
-                      {articoliDisponibili.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.codice ? `[${a.codice}] ` : ""}{a.nome}
-                          <span className="text-muted-foreground text-xs"> · giac. {a.quantita} · {fmtEuro(a.prezzo_listino)}</span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ArticoloPicker articoli={articoliDisponibili} onSelect={(a) => addArticolo(a.id)} placeholder="+ Cerca e aggiungi articolo dal magazzino…" testId="select-add-articolo" />
                 </div>
               )}
             </div>

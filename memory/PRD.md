@@ -648,3 +648,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Azioni rapide spostate in Rimessaggio
 - Rimosse da Home (QuickActionCard, dialog Excel). In Clienti.jsx header: Preventivo veloce (ClienteForm mode=preventivo), Listino prezzi PDF, CSV, "Excel commercialista {anno}" (usa anno di lavoro selezionato).
+
+## 2026-06 – ArticoloPicker (ricerca articolo ovunque)
+- `components/ArticoloPicker.jsx`: ricerca per codice/nome con elenco risultati (giacenza, prezzo). Sostituisce le tendine in LavoriSection (scheda cliente/esterni), Magazzino → Movimenti (carico/scarico/rettifica) e app dipendenti (NuovoLavoro). Preventivo esterno aveva già la ricerca.

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { mobileStore, uid } from "@/lib/mobileStore";
 import { Button } from "@/components/ui/button";
+import { ArticoloPicker } from "@/components/ArticoloPicker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -96,10 +97,7 @@ export default function NuovoLavoro({ onSaved }) {
               </div>
             );
           })}
-          <Select value="" onValueChange={addArt}>
-            <SelectTrigger className="h-11" data-testid="select-mobile-articolo"><SelectValue placeholder="+ Aggiungi articolo" /></SelectTrigger>
-            <SelectContent>{articoli.map((a) => <SelectItem key={a.id} value={a.id}>{a.codice ? `[${a.codice}] ` : ""}{a.nome}</SelectItem>)}</SelectContent>
-          </Select>
+          <ArticoloPicker articoli={articoli} exclude={f.articoli.map((a) => a.articolo_id)} onSelect={(a) => addArt(a.id)} showPrezzo={false} placeholder="+ Cerca articolo (codice o nome)…" testId="select-mobile-articolo" />
         </div>
       )}
 

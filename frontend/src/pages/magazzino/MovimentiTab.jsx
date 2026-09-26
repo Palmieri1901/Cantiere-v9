@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ArticoloPicker } from "@/components/ArticoloPicker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
@@ -128,12 +128,14 @@ export default function MovimentiTab() {
           </DialogHeader>
           <div className="space-y-3">
             <FormField label="Articolo *" full>
-              <Select value={articoloId} onValueChange={setArticoloId}>
-                <SelectTrigger data-testid="mov-select-articolo"><SelectValue placeholder="Seleziona articolo" /></SelectTrigger>
-                <SelectContent>
-                  {articoli.map((a) => <SelectItem key={a.id} value={a.id}>{a.codice ? `[${a.codice}] ` : ""}{a.nome} (giac. {a.quantita})</SelectItem>)}
-                </SelectContent>
-              </Select>
+              {articoloId && artMap[articoloId] ? (
+                <div className="flex items-center justify-between gap-2 p-2.5 rounded-md border border-primary/40 bg-primary/5 text-sm" data-testid="mov-articolo-scelto">
+                  <span className="truncate">{artMap[articoloId].codice ? `[${artMap[articoloId].codice}] ` : ""}{artMap[articoloId].nome} <span className="text-muted-foreground text-xs">· giac. {artMap[articoloId].quantita}</span></span>
+                  <button type="button" onClick={() => setArticoloId("")} className="text-xs text-primary underline" data-testid="mov-cambia-articolo">cambia</button>
+                </div>
+              ) : (
+                <ArticoloPicker articoli={articoli} onSelect={(a) => setArticoloId(a.id)} showPrezzo={false} testId="mov-select-articolo" />
+              )}
             </FormField>
             <FormField label={tipo === "rettifica" ? "Quantità reale" : "Quantità"} full>
               <Input type="number" step="0.01" value={quantita} onChange={(e) => setQuantita(e.target.value)} data-testid="mov-input-quantita" />
