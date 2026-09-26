@@ -173,7 +173,8 @@ async def converti_preventivo(pid: str):
     articoli = [{"articolo_id": r["articolo_id"], "quantita": float(r.get("quantita") or 1), "prezzo_unitario": float(r.get("prezzo_unitario") or 0)}
                 for r in righe if r.get("tipo") == "articolo" and r.get("articolo_id")]
     ore = sum(float(r.get("quantita") or 0) for r in righe if r.get("tipo") == "manodopera")
-    manodopera_e_voci = round(sum(float(r.get("quantita") or 0) * float(r.get("prezzo_unitario") or 0) for r in righe if r.get("tipo") != "articolo"), 2)
+    manodopera_e_voci = round(sum(float(r.get("quantita") or 0) * float(r.get("prezzo_unitario") or 0) for r in righe
+                                  if r.get("tipo") != "articolo" or not r.get("articolo_id")), 2)
     sconto_factor = 1 - float(p.get("sconto_pct") or 0) / 100
     descr = p.get("oggetto") or "; ".join(r.get("descrizione", "") for r in righe if r.get("tipo") != "articolo")[:200]
     lavoro = await create_lavoro(LavoroCreate(

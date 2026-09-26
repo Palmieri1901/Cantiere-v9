@@ -639,3 +639,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 ## 2026-06 – Preventivi clienti esterni
 - Collezione `preventivi_esterni` (numerazione annuale). Endpoint in routers/esterni.py: GET/POST /esterni/{id}/preventivi, PUT/DELETE /esterni/preventivi/{pid}, GET .../pdf (build_preventivo_esterno_pdf), POST .../converti → crea Lavoro via create_lavoro (scarico magazzino, ore manodopera, costo netto voci non-articolo).
 - UI: pulsante "Preventivo" per riga in /esterni; nel dialog scheda tab Lavori eseguiti / Preventivi; editor righe (manodopera a tariffa oraria, ricerca ricambi magazzino con prezzo listino e giacenza, voci libere), sconto/IVA, PDF anteprima, "Crea lavoro".
+
+## 2026-06 – Ricambi non in magazzino nei preventivi esterni
+- Riga tipo articolo con articolo_id null: pulsante "Ricambio non in magazzino" + opzione nella ricerca "Aggiungi ... come ricambio non in magazzino". In conversione a lavoro contano nel costo (non scaricano magazzino).
