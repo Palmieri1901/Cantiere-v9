@@ -672,3 +672,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Contributo casa madre motori in offerta
 - Campo `contributo_offerta` (€ IVA escl.) per modello Suzuki; PUT /suzuki/offerte accetta {offerte, contributi}; azzerato quando il motore esce dall offerta. Netto concessionario = listino netto − contributo (editor listino concessionario + PDF concessionario). Colonna "Contributo casa madre €" nel dialog Motori in offerta.
+
+## 2026-06 – Listino concessionario: colonna IVA inclusa
+- Colonna "Listino IVA escl." → "Listino conc. IVA incl." = prezzo_listino × (1+IVA) in ListinoConcessionarioEditor e PDF concessionario (suzuki.py); disclaimer PDF aggiornato. Netto conc. resta IVA escl.

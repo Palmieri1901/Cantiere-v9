@@ -571,7 +571,7 @@ async def _build_listino_pdf(concessionario: bool = False, sc1: float = 10.0, sc
 
     if concessionario:
         head_row = ["Modello", "HP", "Gambo", "Peso",
-                    "Listino IVA escl.", "Sc.1", "Sc.2", "Netto conc.",
+                    "Listino conc. IVA incl.", "Sc.1", "Sc.2", "Netto conc.",
                     "Pubblico IVA incl.", "% Sc. list.",
                     f"Guadagno ({sc1:g}%+{sc2:g}%)"]
         col_widths = [24*mm, 9*mm, 12*mm, 12*mm, 22*mm, 9*mm, 9*mm, 22*mm, 22*mm, 15*mm, 30*mm]
@@ -654,7 +654,7 @@ async def _build_listino_pdf(concessionario: bool = False, sc1: float = 10.0, sc
                     base[0] = Paragraph(f"<b>{r.get('modello','')}</b><br/><font color='#E65100' size='{font_size-1.2}'>OFFERTA</font>",
                                         ParagraphStyle("mo", parent=styles["Normal"], fontSize=font_size, leading=font_size + 1.5))
                 base += [
-                    _fmt_eur(pl) if pl else "—",
+                    _fmt_eur(pl * IVA_M) if pl else "—",
                     f"{row_sc1:g}%",  # override per modello o default
                     f"{row_sc2:g}%",
                     _fmt_eur(netto_conc) if netto_conc else "—",
@@ -733,8 +733,9 @@ async def _build_listino_pdf(concessionario: bool = False, sc1: float = 10.0, sc
 
     story.append(Spacer(1, 8))
     if concessionario:
-        disclaimer = (f"<i>Documento riservato al concessionario. Contiene prezzi netti al concessionario "
-                      f"dopo applicazione degli sconti Suzuki (Sc.1 e Sc.2). La colonna <b>% Sc. list.</b> mostra "
+        disclaimer = (f"<i>Documento riservato al concessionario. La colonna <b>Listino conc. IVA incl.</b> è il prezzo di listino "
+                      f"riservato al concessionario comprensivo di IVA; <b>Netto conc.</b> è il costo reale IVA esclusa "
+                      f"dopo applicazione degli sconti Suzuki (Sc.1 e Sc.2) e dell'eventuale contributo casa madre. La colonna <b>% Sc. list.</b> mostra "
                       f"lo sconto complessivo dal prezzo pubblico (IVA escl.) al listino concessionario. La colonna "
                       f"<b>Guadagno ({sc1:g}%+{sc2:g}%)</b> stima il margine (IVA escl.) applicando questi due sconti "
                       f"sul prezzo pubblico. I modelli contrassegnati <b>OFFERTA</b> hanno prezzo imposto dalla casa madre: "

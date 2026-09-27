@@ -177,7 +177,7 @@ export default function ListinoConcessionarioEditor({ open, onClose }) {
                 <tr>
                   <th className="text-left px-3 py-2">Modello</th>
                   <th className="text-right px-2 py-2 w-12">HP</th>
-                  <th className="text-right px-2 py-2 w-24">Listino IVA escl.</th>
+                  <th className="text-right px-2 py-2 w-28" title="Prezzo di listino concessionario, IVA inclusa">Listino conc. IVA incl.</th>
                   <th className="text-right px-2 py-2 w-24">Pubblico IVA incl.</th>
                   <th className="text-right px-2 py-2 w-16">% Sc. list.</th>
                   <th className="text-center px-2 py-2 w-20">Sc.1 (%)</th>
@@ -202,7 +202,7 @@ export default function ListinoConcessionarioEditor({ open, onClose }) {
                         <div className="text-[10px] text-muted-foreground">{m.codice || ""}{m.categoria ? ` · ${m.categoria}` : ""}</div>
                       </td>
                       <td className="px-2 py-1.5 text-right font-mono-num">{m.potenza_hp || "—"}</td>
-                      <td className="px-2 py-1.5 text-right font-mono-num">{pl ? IT(pl) + " €" : "—"}</td>
+                      <td className="px-2 py-1.5 text-right font-mono-num">{pl ? IT(pl * IVA_M) + " €" : "—"}</td>
                       <td className={`px-2 py-1.5 text-right font-mono-num ${inOfferta ? "text-orange-700 font-bold" : ""}`}>{pub ? IT(pub) + " €" : "—"}</td>
                       <td className="px-2 py-1.5 text-right text-muted-foreground">{scListPerc > 0 ? scListPerc.toFixed(1) + "%" : "—"}</td>
                       <td className="px-1 py-1.5">
