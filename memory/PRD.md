@@ -666,3 +666,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Fix nome cliente su privacy
 - PrivacyTab: campo ricerca con suggerimenti (clienti dedup per persona + esterni) e testo libero; PDF accetta ?nome= (oltre a cliente_id).
+
+## 2026-06 – Fix errore in apertura
+- Import duplicato di Input in PrivacyTab.jsx (aggiunto sia da me sia dal testing agent) → "Compiled with problems". Rimossa la riga doppia.
