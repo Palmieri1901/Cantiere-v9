@@ -1,4 +1,4 @@
-"""Invio email: SMTP standard (es. Aruba) oppure, se configurato, proxy Emergent."""
+"""Invio email: SMTP standard (es. Aruba)."""
 import os
 import re
 import ssl
@@ -6,15 +6,12 @@ import asyncio
 import smtplib
 import ipaddress
 import logging
-import httpx
 from email.message import EmailMessage
 from html.parser import HTMLParser
 from urllib.parse import urlparse
 from fastapi import HTTPException
 
 logger = logging.getLogger("cantiere.email")
-
-EMAIL_BASE_URL = "https://integrations.emergentagent.com"
 
 _SHORTENERS = ("bit.ly", "tinyurl.com", "t.co", "is.gd", "cutt.ly", "goo.gl", "rebrand.ly")
 _CRED_ASK = (
@@ -120,39 +117,15 @@ def _send_smtp(to: str, subject: str, html: str) -> str:
 
 
 async def send_email(*, to: str, subject: str, html: str) -> str | None:
-    """Invia un'email via SMTP (SMTP_HOST) oppure via proxy Emergent (EMERGENT_EMAIL_KEY)."""
+    """Invia un'email via SMTP (SMTP_HOST)."""
     _assert_safe_email(subject, html)
-    if os.environ.get("SMTP_HOST"):
-        try:
-            return await asyncio.to_thread(_send_smtp, to, subject, html)
-        except Exception as e:
-            logger.error(f"SMTP send error: {e}")
-            raise HTTPException(status_code=502, detail="Impossibile inviare email (SMTP)")
-    email_key = os.environ.get("EMERGENT_EMAIL_KEY")
-    if not email_key:
+    if not os.environ.get("SMTP_HOST"):
         raise HTTPException(status_code=500, detail="Email non configurata: imposta SMTP_HOST nel file .env")
-    from_name = os.environ.get("EMAIL_FROM_NAME", "Portomare")
-    payload = {
-        "to": [to],
-        "subject": subject,
-        "html": html,
-        "from_name": from_name,
-    }
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
-            resp = await client.post(
-                f"{EMAIL_BASE_URL}/api/v1/email/send",
-                headers={"X-Email-Key": email_key},
-                json=payload,
-            )
-        resp.raise_for_status()
-        return resp.json().get("id")
-    except httpx.HTTPStatusError as e:
-        logger.error(f"Email send failed: {e.response.status_code} {e.response.text}")
-        raise HTTPException(status_code=502, detail="Impossibile inviare email")
+        return await asyncio.to_thread(_send_smtp, to, subject, html)
     except Exception as e:
-        logger.error(f"Email send error: {e}")
-        raise HTTPException(status_code=500, detail="Impossibile inviare email")
+        logger.error(f"SMTP send error: {e}")
+        raise HTTPException(status_code=502, detail="Impossibile inviare email (SMTP)")
 
 
 def build_password_reset_email(reset_link: str, requesting_email: str) -> tuple[str, str]:

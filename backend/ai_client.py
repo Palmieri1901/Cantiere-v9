@@ -1,7 +1,6 @@
 """Client AI vision indipendente dal provider.
 
-Priorità: GEMINI_API_KEY (Google Gemini diretto, nessuna dipendenza esterna) →
-EMERGENT_LLM_KEY (solo se presente, retro-compatibilità con l'ambiente Emergent).
+Usa GEMINI_API_KEY (Google Gemini diretto, nessuna dipendenza esterna).
 """
 import os
 from typing import List
@@ -45,27 +44,10 @@ async def _gemini_direct(api_key: str, system: str, prompt: str, images: List[st
         return ""
 
 
-async def _emergent(api_key: str, system: str, prompt: str, images: List[str]) -> str:
-    from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent, TextDelta, StreamDone
-    from datetime import datetime
-    chat = LlmChat(api_key=api_key, session_id=f"vision-{datetime.now().timestamp()}", system_message=system).with_model("gemini", "gemini-3-flash-preview")
-    msg = UserMessage(text=prompt, file_contents=[ImageContent(image_base64=i) for i in images])
-    chunks: List[str] = []
-    async for ev in chat.stream_message(msg):
-        if isinstance(ev, TextDelta):
-            chunks.append(ev.content)
-        elif isinstance(ev, StreamDone):
-            break
-    return "".join(chunks)
-
-
 async def vision(system: str, prompt: str, images_b64: List[str]) -> str:
     """Analizza una o più immagini/PDF (base64) e restituisce il testo prodotto dal modello."""
     images = [_clean(i) for i in images_b64 if i]
     gemini_key = os.environ.get("GEMINI_API_KEY", "").strip()
     if gemini_key:
         return await _gemini_direct(gemini_key, system, prompt, images)
-    emergent_key = os.environ.get("EMERGENT_LLM_KEY", "").strip()
-    if emergent_key:
-        return await _emergent(emergent_key, system, prompt, images)
     raise HTTPException(500, "Nessuna chiave AI configurata: imposta GEMINI_API_KEY nel file .env")

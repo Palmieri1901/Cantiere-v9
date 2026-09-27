@@ -5,7 +5,7 @@ import pytest
 import requests
 from pypdf import PdfReader
 
-BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "https://marina-workspace.preview.emergentagent.com").rstrip("/")
+BASE_URL = os.environ.get("REACT_APP_BACKEND_URL", "http://localhost:8000").rstrip("/")
 
 
 @pytest.fixture(scope="module")
