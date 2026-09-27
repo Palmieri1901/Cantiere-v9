@@ -657,3 +657,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Campi numerici vuoti invece di 0
 - components/ui/input.jsx: per type=number il valore 0/"0" viene mostrato vuoto (globale); al focus su "0" seleziona il testo. Il salvataggio usa Number(x)||0 quindi nessun impatto.
+
+## 2026-06 – Finestra Nuovo lavoro più grande
+- lavoro-dialog max-w-4xl w-[95vw] max-h-[92vh]; descrizione → Textarea 3 righe; materiali 3 righe. esterno-dialog max-w-5xl.

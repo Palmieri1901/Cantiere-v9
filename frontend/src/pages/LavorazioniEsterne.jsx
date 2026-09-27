@@ -104,7 +104,7 @@ export default function LavorazioniEsterne() {
       )}
 
       <Dialog open={!!open} onOpenChange={(o) => { if (!o) { setOpen(null); load(); } }}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" data-testid="esterno-dialog">
+        <DialogContent className="max-w-5xl w-[95vw] max-h-[92vh] overflow-y-auto" data-testid="esterno-dialog">
           <DialogHeader>
             <DialogTitle className="font-display text-2xl">{open?.nome}</DialogTitle>
             <DialogDescription>Scheda lavori del cliente esterno.</DialogDescription>

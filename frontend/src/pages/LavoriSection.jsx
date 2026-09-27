@@ -254,7 +254,7 @@ export default function LavoriSection({ clienteId }) {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto" data-testid="lavoro-dialog">
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[92vh] overflow-y-auto" data-testid="lavoro-dialog">
           <DialogHeader>
             <DialogTitle>{editing ? "Modifica lavoro" : "Nuovo lavoro"}</DialogTitle>
             <DialogDescription>Registra un intervento eseguito o pianificato.</DialogDescription>
@@ -279,7 +279,7 @@ export default function LavoriSection({ clienteId }) {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Descrizione</Label>
-                <Input value={form.descrizione} onChange={(e) => setForm({ ...form, descrizione: e.target.value })} placeholder="Es. Cambio olio motore, revisione elica…" data-testid="input-lavoro-descrizione" />
+                <Textarea rows={3} value={form.descrizione} onChange={(e) => setForm({ ...form, descrizione: e.target.value })} placeholder="Es. Cambio olio motore, revisione elica…" data-testid="input-lavoro-descrizione" />
               </div>
 
               <div className="grid grid-cols-3 gap-3">
@@ -313,7 +313,7 @@ export default function LavoriSection({ clienteId }) {
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Materiali (note libere)</Label>
-                <Textarea rows={2} value={form.materiali} onChange={(e) => setForm({ ...form, materiali: e.target.value })} placeholder="Es. 3L vernice antivegetativa, filtro olio…" data-testid="input-lavoro-materiali" />
+                <Textarea rows={3} value={form.materiali} onChange={(e) => setForm({ ...form, materiali: e.target.value })} placeholder="Es. 3L vernice antivegetativa, filtro olio…" data-testid="input-lavoro-materiali" />
               </div>
 
               {/* Articoli dal magazzino */}
