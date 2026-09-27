@@ -100,7 +100,7 @@ export default function MovimentiTab() {
                   <TableCell><Badge variant={badgeVariant}>{m.tipo}</Badge></TableCell>
                   <TableCell>{art?.nome || <span className="text-muted-foreground italic">Eliminato</span>}</TableCell>
                   <TableCell className="text-right font-mono-num">{m.tipo === "scarico" ? "-" : "+"}{Math.abs(m.quantita)}</TableCell>
-                  <TableCell className="text-right font-mono-num">{m.quantita_dopo}</TableCell>
+                  <TableCell className={`text-right font-mono-num ${Number(m.quantita_dopo) < 0 ? "text-destructive font-bold" : ""}`}>{m.quantita_dopo}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {m.motivo || "—"}
                     {m.cliente_nome && <span className="block text-[10px] text-primary/80 mt-0.5">Cliente: {m.cliente_nome}</span>}

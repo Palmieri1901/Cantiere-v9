@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { confirmDialog } from "@/components/ConfirmDialog";
 import { api, API, fmtEuro } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -154,9 +153,6 @@ export default function ArticoliTab() {
     const qt = parseFloat(raw);
     if (!qt || qt <= 0) { toast.error("Inserisci una quantità positiva"); return; }
     const disponibile = Number(art.quantita || 0);
-    if (tipo === "scarico" && qt > disponibile) {
-      if (!await confirmDialog(`Attenzione: giacenza attuale ${disponibile}. Vuoi comunque scaricare ${qt}?`)) return;
-    }
     setScaricoLoading((s) => ({ ...s, [art.id]: true }));
     try {
       await api.post("/magazzino/movimenti", {
@@ -168,7 +164,7 @@ export default function ArticoliTab() {
       const nuovaQta = tipo === "carico" ? disponibile + qt : disponibile - qt;
       setArticoli((prev) => prev.map((x) => x.id === art.id ? { ...x, quantita: nuovaQta } : x));
       setScaricoInput((s) => ({ ...s, [art.id]: "" }));
-      toast.success(`${tipo === "carico" ? "Caricato" : "Scaricato"} ${qt} ${art.unita_misura || "pz"} — nuova giacenza ${nuovaQta}`);
+      toast[nuovaQta < 0 ? "warning" : "success"](`${tipo === "carico" ? "Caricato" : "Scaricato"} ${qt} ${art.unita_misura || "pz"} — nuova giacenza ${nuovaQta}${nuovaQta < 0 ? " (NEGATIVA: da riordinare)" : ""}`);
     } catch (e) {
       toast.error(e.response?.data?.detail || `Errore ${tipo}`);
     } finally {
@@ -206,7 +202,7 @@ export default function ArticoliTab() {
           ) : <span className="text-muted-foreground">—</span>}
         </TableCell>
         <TableCell className="text-right font-mono-num text-sm" data-testid={`cell-giacenza-${a.id}`}>
-          <span className={Number(a.quantita) <= 0 ? "text-destructive font-semibold" : Number(a.quantita) <= Number(a.scorta_minima) ? "text-amber-600 font-semibold" : "font-semibold"}>
+          <span className={Number(a.quantita) < 0 ? "text-destructive font-bold bg-destructive/10 px-1.5 rounded" : Number(a.quantita) === 0 ? "text-destructive font-semibold" : Number(a.quantita) <= Number(a.scorta_minima) ? "text-amber-600 font-semibold" : "font-semibold"} data-testid={`giacenza-${a.id}`}>
             {Number(a.quantita || 0)}
           </span>
           <span className="text-muted-foreground text-xs ml-1">{a.unita_misura || "pz"}</span>
