@@ -1,0 +1,28 @@
+{
+  "summary": "Tested Consenso Privacy fix (searchable text field replacing dropdown) on /servizio → tab Privacy. Found and fixed a critical missing import (`Input` component) that made the whole PrivacyTab throw a runtime ReferenceError and blank out the tab. After fix all scenarios pass: suggestion 'Getili Francesco' appears exactly once when typing 'get', clicking populates the input, PDF preview opens and renders a 1-page canvas. Free-text 'Mario Prova Libero' works. Empty-name PDF returns 200 / 1 page. Regression on Dati bancari tab OK (iban-abi visible, btn-pdf-coordinate clickable). Backend /api/servizio/privacy.pdf verified with pypdf: contains the provided name and is exactly 1 page in all three cases; unauthenticated returns 401.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [
+      {"component": "PrivacyTab (fixed)", "issue": "`Input` used without import → ReferenceError: Input is not defined, entire tab crashed via ErrorBoundary. Fixed by adding `import { Input } from '@/components/ui/input';`", "selector": "[data-testid=\"input-privacy-cliente\"]", "priority": "CRITICAL (fixed by testing agent)"}
+    ],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Suggestion list", "issues": ["Client 'Getili Francesco' shows extra='Barxca' (likely typo in tipo_barca of the client record - not a code bug, data issue)"]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_privacy_pdf.py", "/app/test_reports/pytest/iter19_privacy.xml"],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PrivacyTab.jsx was missing the Input import — indicates the component was not smoke-tested by the implementer after the dropdown→text-field refactor. Suggest adding a build-time check or ESLint 'no-undef' enforcement (currently only warnings level).",
+    "Suggestion dropdown uses `s.key` (client id) which can collide between /clienti and /esterni if a rare id clash occurred; consider prefixing keys ('c-{id}' / 'e-{id}') for safety.",
+    "privacy_pdf endpoint correctly accepts free-form `nome` and sanitises via .strip(); no injection concerns since name is only rendered in PDF text."
+  ],
+  "updated_files": ["/app/frontend/src/pages/servizio/PrivacyTab.jsx", "/app/backend/tests/test_privacy_pdf.py"],
+  "success_rate": {"backend": "100% (6/6)", "frontend": "100% after fix"},
+  "test_credentials": "admin / password 'admin' as documented in /app/memory/test_credentials.md",
+  "seed_data_creation": "none",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "PrivacyTab now has Input imported. All privacy PDF scenarios verified end-to-end (UI + backend PDF text extraction with pypdf). Reusable pytest file at /app/backend/tests/test_privacy_pdf.py.",
+  "rca of the issue": "Root cause: When refactoring the client field from Select dropdown to a searchable <Input>, the implementer added `<Input>` JSX but forgot to add the import. Because ESLint is at warning level (`react-hooks/exhaustive-deps` etc.) the build succeeded but React threw ReferenceError at render time inside PrivacyTab, so the tab body was replaced by the ErrorBoundary/RUE overlay. Reproduction: navigate /servizio → click Consenso privacy tab → runtime error. Mitigation applied: added `import { Input } from '@/components/ui/input';` in PrivacyTab.jsx."
+}

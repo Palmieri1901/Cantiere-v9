@@ -663,3 +663,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Giacenze negative in rosso
 - Backend già permetteva negativi. UI: ArticoliTab giacenza <0 in rosso con sfondo (giacenza-{id}), rimosso confirm su scarico oltre giacenza (toast warning "NEGATIVA"); ArticoloPicker e MovimentiTab (Giacenza dopo) in rosso se <0.
+
+## 2026-06 – Fix nome cliente su privacy
+- PrivacyTab: campo ricerca con suggerimenti (clienti dedup per persona + esterni) e testo libero; PDF accetta ?nome= (oltre a cliente_id).
