@@ -154,14 +154,14 @@ async def coordinate_pdf(cliente_id: Optional[str] = None, importo: Optional[flo
 
 
 @router.get("/servizio/privacy.pdf")
-async def privacy_pdf(cliente_id: Optional[str] = None):
+async def privacy_pdf(cliente_id: Optional[str] = None, nome: Optional[str] = None):
     d = await _get()
     cant = await db.cantiere.find_one({"id": "default"}, {"_id": 0}) or {}
     c = await _cliente(cliente_id)
     indirizzo = ", ".join(x for x in [cant.get("indirizzo"), " ".join(filter(None, [cant.get("cap"), cant.get("citta")]))] if x)
     testo = d["privacy_testo"].replace("{cantiere}", cant.get("nome", "")).replace("{indirizzo}", indirizzo) \
         .replace("{telefono}", cant.get("telefono", "") or "").replace("{email}", cant.get("email", "") or "")
-    nome = f"{c.get('cognome', '')} {c.get('nome', '')}".strip() if c else ""
-    pdf = build_documento_servizio_pdf(cant, "Informativa e consenso privacy", [], testo=testo, firma_nome=nome, consenso=True)
-    fname = f"Consenso_privacy{('_' + c['cognome'].replace(' ', '_')) if c else ''}.pdf"
+    nome_firma = (nome or "").strip() or (f"{c.get('cognome', '')} {c.get('nome', '')}".strip() if c else "")
+    pdf = build_documento_servizio_pdf(cant, "Informativa e consenso privacy", [], testo=testo, firma_nome=nome_firma, consenso=True)
+    fname = f"Consenso_privacy{('_' + nome_firma.replace(' ', '_')) if nome_firma else ''}.pdf"
     return StreamingResponse(io.BytesIO(pdf), media_type="application/pdf", headers={"Content-Disposition": f'inline; filename="{fname}"'})

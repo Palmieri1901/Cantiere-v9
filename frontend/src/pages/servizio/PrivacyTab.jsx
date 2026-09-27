@@ -1,11 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { api } from "@/lib/api";
 import { confirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Save, Eye, RotateCcw, Sparkles, Camera, Upload } from "lucide-react";
 
@@ -14,9 +13,24 @@ const L = ({ children }) => <Label className="text-xs font-semibold uppercase tr
 export default function PrivacyTab({ dati, onSaved, anteprima }) {
   const [testo, setTesto] = useState(dati.privacy_testo || "");
   const [clienti, setClienti] = useState([]);
-  const [cid, setCid] = useState("");
+  const [nomeCliente, setNomeCliente] = useState("");
+  const [showSugg, setShowSugg] = useState(false);
   const [busy, setBusy] = useState(false);
-  useEffect(() => { api.get("/clienti").then((r) => setClienti(r.data)).catch(() => {}); }, []);
+  useEffect(() => {
+    Promise.all([api.get("/clienti").catch(() => ({ data: [] })), api.get("/esterni").catch(() => ({ data: [] }))]).then(([c, e]) => {
+      const seen = new Set(); const out = [];
+      for (const x of c.data) {
+        const label = `${x.cognome || ""} ${x.nome || ""}`.trim(); const k = label.toLowerCase();
+        if (!k || seen.has(k)) continue; seen.add(k); out.push({ key: x.id, label, extra: x.tipo_barca || "" });
+      }
+      for (const x of e.data) { const k = (x.nome || "").toLowerCase(); if (!k || seen.has(k)) continue; seen.add(k); out.push({ key: x.id, label: x.nome, extra: "cliente esterno" }); }
+      setClienti(out.sort((a, b) => a.label.localeCompare(b.label)));
+    });
+  }, []);
+  const suggerimenti = useMemo(() => {
+    const q = nomeCliente.trim().toLowerCase();
+    return (q ? clienti.filter((c) => c.label.toLowerCase().includes(q)) : clienti).slice(0, 8);
+  }, [nomeCliente, clienti]);
 
   const salva = async () => { const r = await api.put("/servizio/dati", { privacy_testo: testo }); onSaved(r.data); toast.success("Testo privacy salvato"); };
   const ripristina = async () => {
@@ -36,7 +50,6 @@ export default function PrivacyTab({ dati, onSaved, anteprima }) {
     } catch (err) { toast.error(err.response?.data?.detail || "Estrazione non riuscita"); }
     finally { setBusy(false); }
   };
-  const cliente = clienti.find((c) => c.id === cid);
 
   return (
     <div className="space-y-4" data-testid="privacy-tab">
@@ -59,13 +72,19 @@ export default function PrivacyTab({ dati, onSaved, anteprima }) {
         <div className="text-xs text-muted-foreground flex items-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Segnaposto disponibili: <code>{"{cantiere}"}</code> <code>{"{indirizzo}"}</code> <code>{"{telefono}"}</code> <code>{"{email}"}</code> — vengono sostituiti con i dati del cantiere. Righe in MAIUSCOLO o numerate "1. TITOLO" diventano titoli nel PDF.</div>
         <div className="flex gap-2 flex-wrap items-end">
           <Button onClick={salva} className="bg-primary hover:bg-primary/90" data-testid="btn-salva-privacy"><Save className="w-4 h-4 mr-1.5" /> Salva testo</Button>
-          <div className="space-y-1.5 min-w-64"><L>Precompila nome cliente (opzionale)</L>
-            <Select value={cid} onValueChange={setCid}>
-              <SelectTrigger data-testid="select-privacy-cliente"><SelectValue placeholder="Nessuno (modulo in bianco)" /></SelectTrigger>
-              <SelectContent>{clienti.map((c) => <SelectItem key={c.id} value={c.id}>{c.cognome} {c.nome} ({c.anno})</SelectItem>)}</SelectContent>
-            </Select>
+          <div className="space-y-1.5 min-w-80 relative"><L>Nome cliente sul modulo (opzionale)</L>
+            <Input value={nomeCliente} onChange={(e) => { setNomeCliente(e.target.value); setShowSugg(true); }} onFocus={() => setShowSugg(true)} onBlur={() => setTimeout(() => setShowSugg(false), 150)} placeholder="Cerca in archivio o scrivi un nome…" data-testid="input-privacy-cliente" />
+            {showSugg && suggerimenti.length > 0 && (
+              <div className="absolute z-30 left-0 right-0 top-full mt-1 bg-card border rounded-md shadow-lg divide-y max-h-56 overflow-y-auto" data-testid="privacy-suggerimenti">
+                {suggerimenti.map((s) => (
+                  <button key={s.key} type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => { setNomeCliente(s.label); setShowSugg(false); }} className="w-full text-left px-3 py-2 hover:bg-muted text-sm" data-testid={`privacy-sugg-${s.key}`}>
+                    {s.label}{s.extra && <span className="text-xs text-muted-foreground"> · {s.extra}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
-          <Button variant="outline" onClick={() => anteprima(`/servizio/privacy.pdf${cid ? `?cliente_id=${cid}` : ""}`, `Consenso_privacy${cliente ? `_${cliente.cognome}` : ""}.pdf`)} data-testid="btn-pdf-privacy"><Eye className="w-4 h-4 mr-1.5" /> Anteprima PDF consenso</Button>
+          <Button variant="outline" onClick={() => anteprima(`/servizio/privacy.pdf${nomeCliente.trim() ? `?nome=${encodeURIComponent(nomeCliente.trim())}` : ""}`, `Consenso_privacy${nomeCliente.trim() ? `_${nomeCliente.trim().replace(/\s+/g, "_")}` : ""}.pdf`)} data-testid="btn-pdf-privacy"><Eye className="w-4 h-4 mr-1.5" /> Anteprima PDF consenso</Button>
         </div>
       </Card>
     </div>
