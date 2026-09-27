@@ -13,6 +13,7 @@ import { fmt } from "./common";
 export default function OfferteDialog({ open, onClose, onSaved }) {
   const [modelli, setModelli] = useState([]);
   const [offerte, setOfferte] = useState({}); // { id: prezzo }
+  const [contributi, setContributi] = useState({}); // { id: contributo casa madre € }
   const [q, setQ] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -20,9 +21,9 @@ export default function OfferteDialog({ open, onClose, onSaved }) {
     if (!open) return;
     api.get("/suzuki/modelli").then((r) => {
       setModelli(r.data || []);
-      const o = {};
-      for (const m of r.data || []) if (Number(m.prezzo_offerta) > 0) o[m.id] = m.prezzo_offerta;
-      setOfferte(o);
+      const o = {}; const c = {};
+      for (const m of r.data || []) if (Number(m.prezzo_offerta) > 0) { o[m.id] = m.prezzo_offerta; if (Number(m.contributo_offerta) > 0) c[m.id] = m.contributo_offerta; }
+      setOfferte(o); setContributi(c);
     }).catch(() => toast.error("Errore caricamento modelli"));
   }, [open]);
 
@@ -41,7 +42,7 @@ export default function OfferteDialog({ open, onClose, onSaved }) {
     if (missing.length) { toast.error("Inserisci il prezzo imposto per tutti i motori selezionati"); return; }
     setSaving(true);
     try {
-      const r = await api.put("/suzuki/offerte", { offerte });
+      const r = await api.put("/suzuki/offerte", { offerte, contributi });
       toast.success(`${r.data.count} motori in offerta salvati`);
       onSaved?.();
       onClose();
@@ -77,6 +78,7 @@ export default function OfferteDialog({ open, onClose, onSaved }) {
                 <th className="text-right px-2 py-2 w-14">HP</th>
                 <th className="text-right px-2 py-2 w-28">Pubblico IVA incl.</th>
                 <th className="text-right px-2 py-2 w-40">Prezzo imposto € (IVA incl.)</th>
+                <th className="text-right px-2 py-2 w-36" title="Contributo della casa madre al concessionario (IVA escl.): riduce il netto concessionario">Contributo casa madre €</th>
               </tr>
             </thead>
             <tbody>
@@ -97,6 +99,11 @@ export default function OfferteDialog({ open, onClose, onSaved }) {
                       <Input type="number" step="1" min="0" disabled={!on} value={on ? offerte[m.id] : ""} placeholder={on ? "Prezzo imposto" : "—"}
                         onChange={(e) => setOfferte((p) => ({ ...p, [m.id]: e.target.value }))}
                         className="h-7 text-xs text-right font-mono-num" data-testid={`in-offerta-${m.id}`} />
+                    </td>
+                    <td className="px-2 py-1.5">
+                      <Input type="number" step="1" min="0" disabled={!on} value={on ? (contributi[m.id] ?? "") : ""} placeholder={on ? "Contributo €" : "—"}
+                        onChange={(e) => setContributi((p) => ({ ...p, [m.id]: e.target.value }))}
+                        className="h-7 text-xs text-right font-mono-num" data-testid={`in-contributo-${m.id}`} />
                     </td>
                   </tr>
                 );

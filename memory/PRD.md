@@ -669,3 +669,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – Fix errore in apertura
 - Import duplicato di Input in PrivacyTab.jsx (aggiunto sia da me sia dal testing agent) → "Compiled with problems". Rimossa la riga doppia.
+
+## 2026-06 – Contributo casa madre motori in offerta
+- Campo `contributo_offerta` (€ IVA escl.) per modello Suzuki; PUT /suzuki/offerte accetta {offerte, contributi}; azzerato quando il motore esce dall offerta. Netto concessionario = listino netto − contributo (editor listino concessionario + PDF concessionario). Colonna "Contributo casa madre €" nel dialog Motori in offerta.

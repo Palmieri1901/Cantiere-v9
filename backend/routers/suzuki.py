@@ -271,13 +271,18 @@ async def save_offerte(payload: dict):
             continue
         if p > 0:
             clean[str(mid)] = p
+    contributi = payload.get("contributi") or {}
     now = datetime.now(timezone.utc)
     await db.suzuki_modelli.update_many(
         {"id": {"$nin": list(clean.keys())}, "prezzo_offerta": {"$gt": 0}},
-        {"$set": {"prezzo_offerta": 0, "updated_at": now}},
+        {"$set": {"prezzo_offerta": 0, "contributo_offerta": 0, "updated_at": now}},
     )
     for mid, p in clean.items():
-        await db.suzuki_modelli.update_one({"id": mid}, {"$set": {"prezzo_offerta": p, "updated_at": now}})
+        try:
+            contributo = max(0.0, float(contributi.get(mid) or 0))
+        except (TypeError, ValueError):
+            contributo = 0.0
+        await db.suzuki_modelli.update_one({"id": mid}, {"$set": {"prezzo_offerta": p, "contributo_offerta": contributo, "updated_at": now}})
     return {"count": len(clean), "offerte": clean}
 
 
@@ -624,6 +629,8 @@ async def _build_listino_pdf(concessionario: bool = False, sc1: float = 10.0, sc
                 s1_mod = float(r.get("sconto_perc_1") or 0)
                 s2_mod = float(r.get("sconto_perc_2") or 0)
                 netto_conc = pl * (1 - s1_mod/100) * (1 - s2_mod/100) if pl else 0
+                if offerta > 0:
+                    netto_conc = max(0.0, netto_conc - float(r.get("contributo_offerta") or 0))
                 # % sconto listino: da pubblico IVA escl. al listino concessionario
                 pub_escl = pub / IVA_M if pub else 0
                 sconto_list_perc = ((pub_escl - pl) / pub_escl * 100) if pub_escl > 0 and pl > 0 else 0

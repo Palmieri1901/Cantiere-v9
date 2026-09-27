@@ -66,7 +66,7 @@ export default function ListinoConcessionarioEditor({ open, onClose }) {
       const pub = inOfferta ? offerta : Number(m.prezzo_pubblico) || 0;
       const s1Mod = Number(m.sconto_perc_1) || 0;
       const s2Mod = Number(m.sconto_perc_2) || 0;
-      const nettoConc = pl * (1 - s1Mod / 100) * (1 - s2Mod / 100);
+      const nettoConc = Math.max(0, pl * (1 - s1Mod / 100) * (1 - s2Mod / 100) - (inOfferta ? Number(m.contributo_offerta) || 0 : 0));
       const pubEscl = pub ? pub / IVA_M : 0;
       const scListPerc = pubEscl > 0 && pl > 0 ? ((pubEscl - pl) / pubEscl) * 100 : 0;
       const nettoVenditaIncl = pub * (1 - s1 / 100) * (1 - s2 / 100);
@@ -211,7 +211,7 @@ export default function ListinoConcessionarioEditor({ open, onClose }) {
                       <td className="px-1 py-1.5">
                         <Input type="number" step="0.5" min="0" max="100" disabled={inOfferta} title={inOfferta ? "Prezzo imposto: sconto bloccato" : ""} value={inOfferta ? 0 : overrides[m.id]?.sc2 ?? defaultSc2} onChange={(e) => setOverride(m.id, "sc2", e.target.value)} className={`h-7 text-xs text-center font-mono-num ${isOverride ? "border-primary/50 bg-primary/5" : ""} ${inOfferta ? "bg-orange-100 text-orange-700" : ""}`} data-testid={`in-sc2-${m.id}`} />
                       </td>
-                      <td className="px-2 py-1.5 text-right font-mono-num">{nettoConc ? IT(nettoConc) + " €" : "—"}</td>
+                      <td className="px-2 py-1.5 text-right font-mono-num">{nettoConc ? IT(nettoConc) + " €" : "—"}{inOfferta && Number(m.contributo_offerta) > 0 && <div className="text-[10px] text-emerald-700" title="Contributo casa madre già detratto">− contr. {IT(Number(m.contributo_offerta))} €</div>}</td>
                       <td className={`px-2 py-1.5 text-right font-mono-num font-bold ${neg ? "text-red-700" : "text-emerald-700"}`} data-testid={`guadagno-${m.id}`}>
                         {pl && pub ? (guadagno >= 0 ? "+ " : "− ") + IT(Math.abs(guadagno)) + " €" : "—"}
                       </td>
