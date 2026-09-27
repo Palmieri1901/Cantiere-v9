@@ -40,6 +40,8 @@ export default function LavoriSection({ clienteId }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(null);
+  const [tariffaOraria, setTariffaOraria] = useState(0);
+  const [costoManuale, setCostoManuale] = useState(false);
   const [articoliMag, setArticoliMag] = useState([]);
   const [artSelezionati, setArtSelezionati] = useState([]); // [{articolo_id, codice, nome, quantita, prezzo_unitario, giacenza}]
 
@@ -58,16 +60,24 @@ export default function LavoriSection({ clienteId }) {
     setEditing(null);
     setForm(emptyLavoro(clienteId));
     setArtSelezionati([]);
+    setCostoManuale(false);
     setDialogOpen(true);
     try {
-      const r = await api.get("/magazzino/articoli");
+      const [r, t] = await Promise.all([api.get("/magazzino/articoli"), api.get("/tariffe")]);
       setArticoliMag(r.data);
+      setTariffaOraria(Number(t.data.costo_orario_manodopera) || 0);
     } catch { /* ignoro */ }
+  };
+
+  const onOreChange = (v) => {
+    setForm((f) => ({ ...f, ore: v, costo: !costoManuale && tariffaOraria > 0 ? +((Number(v) || 0) * tariffaOraria).toFixed(2) : f.costo }));
   };
 
   const openEdit = (l) => {
     setEditing(l);
     setForm({ ...l });
+    setCostoManuale(true);
+    api.get("/tariffe").then((t) => setTariffaOraria(Number(t.data.costo_orario_manodopera) || 0)).catch(() => {});
     // Ripopola gli articoli già scaricati sul lavoro così l'utente può aggiungerne/toglierne
     const preselezionati = Array.isArray(l?.articoli_magazzino) ? l.articoli_magazzino : [];
     setArtSelezionati(preselezionati.map((it) => {
@@ -275,13 +285,14 @@ export default function LavoriSection({ clienteId }) {
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Ore lavoro</Label>
-                  <Input type="number" step="0.5" min="0" className="font-mono-num" value={form.ore ?? 0} onChange={(e) => setForm({ ...form, ore: e.target.value })} data-testid="input-lavoro-ore" />
+                  <Input type="number" step="0.5" min="0" className="font-mono-num" value={form.ore ?? 0} onChange={(e) => onOreChange(e.target.value)} data-testid="input-lavoro-ore" />
+                  {tariffaOraria > 0 && <div className="text-[11px] text-muted-foreground" data-testid="lavoro-tariffa-hint">{tariffaOraria} €/h da Tariffe{costoManuale ? " · costo modificato a mano" : ""}</div>}
                 </div>
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Costo manodopera</Label>
                   <div className="relative">
                     <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">€</span>
-                    <Input type="number" step="0.01" min="0" className="pl-10 font-mono-num" value={form.costo} onChange={(e) => setForm({ ...form, costo: e.target.value })} data-testid="input-lavoro-costo" />
+                    <Input type="number" step="0.01" min="0" className="pl-10 font-mono-num" value={form.costo} onChange={(e) => { setCostoManuale(true); setForm({ ...form, costo: e.target.value }); }} data-testid="input-lavoro-costo" />
                   </div>
                   {!editing && costoArticoli > 0 && (
                     <div className="text-[11px] text-muted-foreground mt-1">

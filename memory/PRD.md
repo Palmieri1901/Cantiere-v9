@@ -651,3 +651,6 @@ Backend spezzato in moduli (`server.py` ora 112 righe, prima 2761):
 
 ## 2026-06 – ArticoloPicker (ricerca articolo ovunque)
 - `components/ArticoloPicker.jsx`: ricerca per codice/nome con elenco risultati (giacenza, prezzo). Sostituisce le tendine in LavoriSection (scheda cliente/esterni), Magazzino → Movimenti (carico/scarico/rettifica) e app dipendenti (NuovoLavoro). Preventivo esterno aveva già la ricerca.
+
+## 2026-06 – Costo manodopera predefinito nel lavoro
+- LavoriSection: costo = ore × costo_orario_manodopera (Tariffe) finché l utente non modifica il costo a mano (flag costoManuale); hint "60 €/h da Tariffe". In modifica lavoro il costo non viene ricalcolato automaticamente.
